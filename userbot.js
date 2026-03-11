@@ -627,53 +627,97 @@ asstBot.on('inline_query', (query) => {
   }
 });
 
-asstBot.on('callback_query', (query) => {
+// === LOGIKA PAS BUTTON DIKLIK (VERSI JABARAN SATU-SATU) ===
+asstBot.on('callback_query', async (query) => {
   const data = query.data;
   const inlineMsgId = query.inline_message_id;
 
-  if (data === "close_menu") {
-    asstBot.editMessageCaption("<i>Menu telah ditutup.</i>", { inline_message_id: inlineMsgId, parse_mode: 'HTML' });
-  } else if (data.startsWith("cat_")) {
-    const catName = data.replace("cat_", "");
-    const cmds = groupedFeatures[catName];
-    
-    let catMessage = `━━━━━━━━━━━━━━━━━━\n📦 <b>Menu ${catName}</b>\n━━━━━━━━━━━━━━━━━━\n`;
-    if (cmds) {
-      cmds.forEach((f) => catMessage += `• <code>${f.cmd}</code> → ${f.desc}\n`);
-    } else {
-      catMessage += `Belum ada fitur.\n`;
+  try {
+    if (data === "close_menu") {
+      await asstBot.editMessageCaption("<i>Menu telah ditutup.</i>", { inline_message_id: inlineMsgId, parse_mode: 'HTML' });
+      await asstBot.answerCallbackQuery(query.id);
+      return;
     }
 
-    asstBot.editMessageCaption(catMessage, {
-      inline_message_id: inlineMsgId,
-      parse_mode: 'HTML',
-      reply_markup: {
-        inline_keyboard: [[ { text: "⬅️ Kembali ke Menu Utama", callback_data: "back_home" } ]]
-      }
-    });
-  } else if (data === "back_home") {
-    const helpText = `╭━━━━━━━━━━━━━━━━━━╮\n│  🌸 <b>UNBOT MENU</b> 🌸\n├──────────────────\n│ 👋 Hai, <b>My Lovely Jut's!</b>\n│ 📋 Silakan pilih kategori di bawah:\n╰━━━━━━━━━━━━━━━━━━╯`;
-    
-    const keyboard = [
-      [{ text: "🔧 Utility", callback_data: "cat_Utility" }, { text: "🔒 Moderasi", callback_data: "cat_Moderasi" }],
-      [{ text: "💤 AFK", callback_data: "cat_AFK" }, { text: "📢 Broadcast", callback_data: "cat_Broadcast" }],
-      [{ text: "😂 Fun / Spam", callback_data: "cat_Fun / Spam" }, { text: "⬇️ Downloader", callback_data: "cat_Downloader" }],
-      [{ text: "🛠️ Tools", callback_data: "cat_Tools" }, { text: "🤖 AI & Search", callback_data: "cat_AI & Search" }],
-      [{ text: "🖼️ Sticker & Image", callback_data: "cat_Sticker & Image" }, { text: "🎵 Audio & Music", callback_data: "cat_Audio & Music" }],
-      [{ text: "🎌 Anime & Waifu", callback_data: "cat_Anime & Waifu" }, { text: "☪️ Islam", callback_data: "cat_Islam" }],
-      [{ text: "🎮 Game", callback_data: "cat_Game" }, { text: "😜 Random & Meme", callback_data: "cat_Random & Meme" }],
-      [{ text: "🔍 Info & Stalking", callback_data: "cat_Info & Stalking" }, { text: "🔤 Text Converter", callback_data: "cat_Text Converter" }],
-      [{ text: "❌ Tutup Menu", callback_data: "close_menu" }]
-    ];
+    if (data === "back_home") {
+      const helpText = `╭━━━━━━━━━━━━━━━━━━╮\n│  🌸 <b>UNBOT MENU</b> 🌸\n├──────────────────\n│ 👋 Hai, <b>My Lovely Jut's!</b>\n│ 📋 Silakan pilih kategori di bawah:\n╰━━━━━━━━━━━━━━━━━━╯`;
+      
+      const keyboard = [
+        [{ text: "🔧 Utility", callback_data: "cat_Utility" }, { text: "🔒 Moderasi", callback_data: "cat_Moderasi" }],
+        [{ text: "💤 AFK", callback_data: "cat_AFK" }, { text: "📢 Broadcast", callback_data: "cat_Broadcast" }],
+        [{ text: "😂 Fun / Spam", callback_data: "cat_Fun / Spam" }, { text: "⬇️ Downloader", callback_data: "cat_Downloader" }],
+        [{ text: "🛠️ Tools", callback_data: "cat_Tools" }, { text: "🤖 AI & Search", callback_data: "cat_AI & Search" }],
+        [{ text: "🖼️ Sticker & Image", callback_data: "cat_Sticker & Image" }, { text: "🎵 Audio & Music", callback_data: "cat_Audio & Music" }],
+        [{ text: "🎌 Anime & Waifu", callback_data: "cat_Anime & Waifu" }, { text: "☪️ Islam", callback_data: "cat_Islam" }],
+        [{ text: "🎮 Game", callback_data: "cat_Game" }, { text: "😜 Random & Meme", callback_data: "cat_Random & Meme" }],
+        [{ text: "🔍 Info & Stalking", callback_data: "cat_Info & Stalking" }, { text: "🔤 Text Converter", callback_data: "cat_Text Converter" }],
+        [{ text: "❌ Tutup Menu", callback_data: "close_menu" }]
+      ];
 
-    asstBot.editMessageCaption(helpText, {
-      inline_message_id: inlineMsgId,
-      parse_mode: 'HTML',
-      reply_markup: { inline_keyboard: keyboard }
-    });
+      await asstBot.editMessageCaption(helpText, {
+        inline_message_id: inlineMsgId,
+        parse_mode: 'HTML',
+        reply_markup: { inline_keyboard: keyboard }
+      });
+      await asstBot.answerCallbackQuery(query.id);
+      return;
+    }
+
+    let catName = "";
+
+    // === INI PEMANGGILAN CALLBACK SATU-SATU NYA BANG ===
+    if (data === "cat_Utility") catName = "Utility";
+    else if (data === "cat_Moderasi") catName = "Moderasi";
+    else if (data === "cat_AFK") catName = "AFK";
+    else if (data === "cat_Broadcast") catName = "Broadcast";
+    else if (data === "cat_Fun / Spam") catName = "Fun / Spam";
+    else if (data === "cat_Downloader") catName = "Downloader";
+    else if (data === "cat_Tools") catName = "Tools";
+    else if (data === "cat_AI & Search") catName = "AI & Search";
+    else if (data === "cat_Sticker & Image") catName = "Sticker & Image";
+    else if (data === "cat_Audio & Music") catName = "Audio & Music";
+    else if (data === "cat_Anime & Waifu") catName = "Anime & Waifu";
+    else if (data === "cat_Islam") catName = "Islam";
+    else if (data === "cat_Game") catName = "Game";
+    else if (data === "cat_Random & Meme") catName = "Random & Meme";
+    else if (data === "cat_Info & Stalking") catName = "Info & Stalking";
+    else if (data === "cat_Text Converter") catName = "Text Converter";
+
+    // Kalau callback-nya ada yang cocok sama kategori di atas
+    if (catName !== "") {
+      const cmds = groupedFeatures[catName];
+      let catMessage = `━━━━━━━━━━━━━━━━━━\n📦 <b>Menu ${catName}</b>\n━━━━━━━━━━━━━━━━━━\n\n`;
+      
+      if (cmds) {
+        // Format dibikin nyamping biar ga kena limit 1024 huruf!
+        const cmdNames = cmds.map(f => `<code>${f.cmd.split(" ")[0]}</code>`);
+        catMessage += cmdNames.join(" • ");
+        catMessage += `\n\n<i>*Ketik nama command di chat untuk mencoba.</i>`;
+      } else {
+        catMessage += `Belum ada fitur.\n`;
+      }
+
+      await asstBot.editMessageCaption(catMessage, {
+        inline_message_id: inlineMsgId,
+        parse_mode: 'HTML',
+        reply_markup: {
+          inline_keyboard: [[ { text: "⬅️ Kembali ke Menu Utama", callback_data: "back_home" } ]]
+        }
+      });
+    }
+    
+    // Hapus loading muter-muter di button
+    await asstBot.answerCallbackQuery(query.id);
+
+  } catch (error) {
+    console.error("Error klik button:", error.message);
+    // Kalau ada error lagi, dia bakal muncul pop-up di layar Telegram lu
+    await asstBot.answerCallbackQuery(query.id, { 
+      text: "⚠️ Gagal: " + error.message, 
+      show_alert: true 
+    }).catch(() => {});
   }
 });
-// ============================================
 
 (async () => {
   console.log("=== Telegram UserBot Start ===");
