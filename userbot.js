@@ -627,12 +627,18 @@ asstBot.on('inline_query', (query) => {
   }
 });
 
-// === LOGIKA PAS BUTTON DIKLIK (VERSI JABARAN SATU-SATU) ===
+// === LOGIKA PAS BUTTON DIKLIK (VERSI PAGINATION SULTAN) ===
 asstBot.on('callback_query', async (query) => {
   const data = query.data;
   const inlineMsgId = query.inline_message_id;
 
   try {
+    // Tombol hiasan (kayak indikator halaman atau tombol mati)
+    if (data === "ignore") {
+      await asstBot.answerCallbackQuery(query.id);
+      return;
+    }
+
     if (data === "close_menu") {
       await asstBot.editMessageCaption("<i>Menu telah ditutup.</i>", { inline_message_id: inlineMsgId, parse_mode: 'HTML' });
       await asstBot.answerCallbackQuery(query.id);
@@ -663,57 +669,66 @@ asstBot.on('callback_query', async (query) => {
       return;
     }
 
-    let catName = "";
-
-    // === INI PEMANGGILAN CALLBACK SATU-SATU NYA BANG ===
-    if (data === "cat_Utility") catName = "Utility";
-    else if (data === "cat_Moderasi") catName = "Moderasi";
-    else if (data === "cat_AFK") catName = "AFK";
-    else if (data === "cat_Broadcast") catName = "Broadcast";
-    else if (data === "cat_Fun / Spam") catName = "Fun / Spam";
-    else if (data === "cat_Downloader") catName = "Downloader";
-    else if (data === "cat_Tools") catName = "Tools";
-    else if (data === "cat_AI & Search") catName = "AI & Search";
-    else if (data === "cat_Sticker & Image") catName = "Sticker & Image";
-    else if (data === "cat_Audio & Music") catName = "Audio & Music";
-    else if (data === "cat_Anime & Waifu") catName = "Anime & Waifu";
-    else if (data === "cat_Islam") catName = "Islam";
-    else if (data === "cat_Game") catName = "Game";
-    else if (data === "cat_Random & Meme") catName = "Random & Meme";
-    else if (data === "cat_Info & Stalking") catName = "Info & Stalking";
-    else if (data === "cat_Text Converter") catName = "Text Converter";
-
-    // Kalau callback-nya ada yang cocok sama kategori di atas
-    if (catName !== "") {
+    // === PENANGKAP OTOMATIS + LOGIKA HALAMAN (PAGINATION) ===
+    if (data.startsWith("cat_")) {
+      // Pecah data, contoh: "cat_Utility" (Hal 1) atau "cat_Utility_2" (Hal 2)
+      const match = data.match(/^cat_(.+?)(?:_(\d+))?$/);
+      const catName = match[1];
+      const page = parseInt(match[2]) || 1;
+      
       const cmds = groupedFeatures[catName];
       let catMessage = `━━━━━━━━━━━━━━━━━━\n📦 <b>Menu ${catName}</b>\n━━━━━━━━━━━━━━━━━━\n\n`;
-      
-      if (cmds) {
-        // Format dibikin nyamping biar ga kena limit 1024 huruf!
-        const cmdNames = cmds.map(f => `<code>${f.cmd.split(" ")[0]}</code>`);
-        catMessage += cmdNames.join(" • ");
-        catMessage += `\n\n<i>*Ketik nama command di chat untuk mencoba.</i>`;
+      let inlineKeyboard = [];
+
+      if (cmds && cmds.length > 0) {
+        // SETTING HALAMAN: Max 12 command per halaman (Aman dari limit Telegram)
+        const ITEMS_PER_PAGE = 12; 
+        const totalPages = Math.ceil(cmds.length / ITEMS_PER_PAGE);
+        const startIndex = (page - 1) * ITEMS_PER_PAGE;
+        const endIndex = startIndex + ITEMS_PER_PAGE;
+        const currentCmds = cmds.slice(startIndex, endIndex);
+
+        // Cetak command sesuai halaman
+        currentCmds.forEach((f) => {
+          catMessage += `• <code>${f.cmd}</code> → ${f.desc}\n`;
+        });
+
+        // BIKIN TOMBOL PREV - NEXT KALAU HALAMANNYA LEBIH DARI 1
+        let navRow = [];
+        if (totalPages > 1) {
+          if (page > 1) navRow.push({ text: "⬅️ Prev", callback_data: `cat_${catName}_${page - 1}` });
+          else navRow.push({ text: "🚫", callback_data: "ignore" });
+
+          navRow.push({ text: `📄 ${page}/${totalPages}`, callback_data: "ignore" });
+
+          if (page < totalPages) navRow.push({ text: "Next ➡️", callback_data: `cat_${catName}_${page + 1}` });
+          else navRow.push({ text: "🚫", callback_data: "ignore" });
+
+          inlineKeyboard.push(navRow);
+        }
       } else {
         catMessage += `Belum ada fitur.\n`;
       }
+
+      // Tombol Kembali selalu ada di paling bawah
+      inlineKeyboard.push([{ text: "⬅️ Kembali ke Menu Utama", callback_data: "back_home" }]);
 
       await asstBot.editMessageCaption(catMessage, {
         inline_message_id: inlineMsgId,
         parse_mode: 'HTML',
         reply_markup: {
-          inline_keyboard: [[ { text: "⬅️ Kembali ke Menu Utama", callback_data: "back_home" } ]]
+          inline_keyboard: inlineKeyboard
         }
       });
     }
     
-    // Hapus loading muter-muter di button
+    // Hapus loading muter-muter
     await asstBot.answerCallbackQuery(query.id);
 
   } catch (error) {
     console.error("Error klik button:", error.message);
-    // Kalau ada error lagi, dia bakal muncul pop-up di layar Telegram lu
     await asstBot.answerCallbackQuery(query.id, { 
-      text: "⚠️ Gagal: " + error.message, 
+      text: "⚠️ Gagal ganti menu: " + error.message, 
       show_alert: true 
     }).catch(() => {});
   }
