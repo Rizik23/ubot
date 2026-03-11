@@ -8,6 +8,7 @@ const os = require("os");
 const { v4: uuidv4 } = require("uuid");
 const axios = require("axios");
 const path = require("path");
+const TelegramBot = require('node-telegram-bot-api');
 // const { ImageUploadService } = require('node-upload-images'); // Unused
 const FormData = require('form-data');
 const { fromBuffer } = require('file-type');
@@ -24,7 +25,7 @@ const SUDOERS_FILE = "sudoers.json";
 
 // === FOOTER ===
 const withFooter = (text) => {
-  return `${text}\n\nUnbot By @Myzxa`;
+  return `${text}\n\nUnbot By @Kaell_Xz`;
 };
 
 // === HELPER BARU ===
@@ -585,6 +586,94 @@ let autoFwRound = 0;
 let autoFwDelayMinutes = 0;
 let autoFwReportMessage = null; // Untuk menyimpan pesan laporan
 // ===================================
+
+// === [TAMBAHAN] MESIN BOT PANCINGAN INLINE ===
+
+
+const botToken = "7888680677:AAGvBgcIqhkudTvh2eZigskN6_U0CdNUVus"; // Ganti Token dari BotFather
+const botUsername = "MyTheXxx8_bot";      // Ganti username bot (tanpa @)
+const fotoMenuUrl = "https://iili.io/qzWIZtj.jpg"; // Ganti link foto
+const asstBot = new TelegramBot(botToken, { polling: true });
+
+asstBot.on('inline_query', (query) => {
+  if (query.query === "help") {
+    // Lu bisa custom teks ini nanti
+    const helpText = `╭━━━━━━━━━━━━━━━━━━╮\n│  🌸 <b>UNBOT MENU</b> 🌸\n├──────────────────\n│ 👋 Hai, <b>My Lovely Jut's!</b>\n│ 📋 Silakan pilih kategori di bawah:\n╰━━━━━━━━━━━━━━━━━━╯`;
+
+    const keyboard = [
+      [{ text: "🔧 Utility", callback_data: "cat_Utility" }, { text: "🔒 Moderasi", callback_data: "cat_Moderasi" }],
+      [{ text: "💤 AFK", callback_data: "cat_AFK" }, { text: "📢 Broadcast", callback_data: "cat_Broadcast" }],
+      [{ text: "😂 Fun / Spam", callback_data: "cat_Fun / Spam" }, { text: "⬇️ Downloader", callback_data: "cat_Downloader" }],
+      [{ text: "🛠️ Tools", callback_data: "cat_Tools" }, { text: "🤖 AI & Search", callback_data: "cat_AI & Search" }],
+      [{ text: "🖼️ Sticker & Image", callback_data: "cat_Sticker & Image" }, { text: "🎵 Audio & Music", callback_data: "cat_Audio & Music" }],
+      [{ text: "🎌 Anime & Waifu", callback_data: "cat_Anime & Waifu" }, { text: "☪️ Islam", callback_data: "cat_Islam" }],
+      [{ text: "🎮 Game", callback_data: "cat_Game" }, { text: "😜 Random & Meme", callback_data: "cat_Random & Meme" }],
+      [{ text: "🔍 Info & Stalking", callback_data: "cat_Info & Stalking" }, { text: "🔤 Text Converter", callback_data: "cat_Text Converter" }],
+      [{ text: "❌ Tutup Menu", callback_data: "close_menu" }]
+    ];
+
+    const results = [{
+      type: 'photo',
+      id: 'menu_help',
+      photo_url: fotoMenuUrl,
+      thumb_url: fotoMenuUrl,
+      title: 'Tampilkan Menu',
+      caption: helpText,
+      parse_mode: 'HTML',
+      reply_markup: { inline_keyboard: keyboard }
+    }];
+
+    asstBot.answerInlineQuery(query.id, results, { cache_time: 0 });
+  }
+});
+
+asstBot.on('callback_query', (query) => {
+  const data = query.data;
+  const inlineMsgId = query.inline_message_id;
+
+  if (data === "close_menu") {
+    asstBot.editMessageCaption("<i>Menu telah ditutup.</i>", { inline_message_id: inlineMsgId, parse_mode: 'HTML' });
+  } else if (data.startsWith("cat_")) {
+    const catName = data.replace("cat_", "");
+    const cmds = groupedFeatures[catName];
+    
+    let catMessage = `━━━━━━━━━━━━━━━━━━\n📦 <b>Menu ${catName}</b>\n━━━━━━━━━━━━━━━━━━\n`;
+    if (cmds) {
+      cmds.forEach((f) => catMessage += `• <code>${f.cmd}</code> → ${f.desc}\n`);
+    } else {
+      catMessage += `Belum ada fitur.\n`;
+    }
+
+    asstBot.editMessageCaption(catMessage, {
+      inline_message_id: inlineMsgId,
+      parse_mode: 'HTML',
+      reply_markup: {
+        inline_keyboard: [[ { text: "⬅️ Kembali ke Menu Utama", callback_data: "back_home" } ]]
+      }
+    });
+  } else if (data === "back_home") {
+    const helpText = `╭━━━━━━━━━━━━━━━━━━╮\n│  🌸 <b>UNBOT MENU</b> 🌸\n├──────────────────\n│ 👋 Hai, <b>My Lovely Jut's!</b>\n│ 📋 Silakan pilih kategori di bawah:\n╰━━━━━━━━━━━━━━━━━━╯`;
+    
+    const keyboard = [
+      [{ text: "🔧 Utility", callback_data: "cat_Utility" }, { text: "🔒 Moderasi", callback_data: "cat_Moderasi" }],
+      [{ text: "💤 AFK", callback_data: "cat_AFK" }, { text: "📢 Broadcast", callback_data: "cat_Broadcast" }],
+      [{ text: "😂 Fun / Spam", callback_data: "cat_Fun / Spam" }, { text: "⬇️ Downloader", callback_data: "cat_Downloader" }],
+      [{ text: "🛠️ Tools", callback_data: "cat_Tools" }, { text: "🤖 AI & Search", callback_data: "cat_AI & Search" }],
+      [{ text: "🖼️ Sticker & Image", callback_data: "cat_Sticker & Image" }, { text: "🎵 Audio & Music", callback_data: "cat_Audio & Music" }],
+      [{ text: "🎌 Anime & Waifu", callback_data: "cat_Anime & Waifu" }, { text: "☪️ Islam", callback_data: "cat_Islam" }],
+      [{ text: "🎮 Game", callback_data: "cat_Game" }, { text: "😜 Random & Meme", callback_data: "cat_Random & Meme" }],
+      [{ text: "🔍 Info & Stalking", callback_data: "cat_Info & Stalking" }, { text: "🔤 Text Converter", callback_data: "cat_Text Converter" }],
+      [{ text: "❌ Tutup Menu", callback_data: "close_menu" }]
+    ];
+
+    asstBot.editMessageCaption(helpText, {
+      inline_message_id: inlineMsgId,
+      parse_mode: 'HTML',
+      reply_markup: { inline_keyboard: keyboard }
+    });
+  }
+});
+// ============================================
 
 (async () => {
   console.log("=== Telegram UserBot Start ===");
@@ -2899,52 +2988,32 @@ let autoFwReportMessage = null; // Untuk menyimpan pesan laporan
         process.exit(0); // PM2 or user will restart it
       }
 
-      // === [DIRUBAH] .help (MENU UTAMA) - DESAIN BARU TANPA QUOTE ===
+// === .help VERSI PANCINGAN INLINE ===
       if (text === ".help") {
-        const now = Date.now();
-        const uptime = formatDuration(now - startTime) || "Baru saja";
+        try {
+          await client.deleteMessages(msg.chatId, [msg.id], { revoke: true });
 
-        let helpMessage = `╭━━━━━━━━━━━━━━━━━━╮\n`;
-        helpMessage += `│  🌸 <b>UNBOT MENU</b> 🌸\n`;
-        helpMessage += `├──────────────────\n`;
-        helpMessage += `│ 👋 Hai, <b>${me.firstName || "User"}</b>!\n`;
-        helpMessage += `│ 📊 Total: <b>${features.length}</b> modul\n`;
-        helpMessage += `│ 🌐 Mode: ${isPublicMode ? "Publik 🌐" : "Self 🔒"}\n`;
-        helpMessage += `│ ⏰ Uptime: ${uptime}\n`;
-        helpMessage += `├──────────────────\n`;
-        helpMessage += `│ 📋 <b>KATEGORI:</b>\n`;
-        helpMessage += `│\n`;
+          const botEntity = await client.getInputEntity(botUsername);
+          const results = await client.invoke(new Api.messages.GetInlineBotResults({
+            bot: botEntity,
+            peer: msg.chatId,
+            query: "help",
+            offset: ""
+          }));
 
-        // Loop dari kategori global
-        for (const catName of Object.keys(groupedFeatures)) {
-          // Logika filter: Jangan tampilkan menu tersembunyi ke user yang tidak berhak
-          if (catName === "Developer Only" && !isOwner) {
-            continue;
-          }
-          if ((catName === "Broadcast" || catName === "Moderasi") && !isSudoer) {
-            continue;
-          }
-
-          const icon = categoryIcons[catName] || "📦";
-          // Buat nama command, cth: "Fun / Spam" -> ".funspammenu"
-          const cmdName = `.${catName.toLowerCase().replace(/ \/ /g, "").replace(/ /g, "").replace(/&/g, "")}menu`;
-          const cmdCount = groupedFeatures[catName].length;
-
-          helpMessage += `│ ${icon} ${catName} (${cmdCount})\n`;
-          helpMessage += `│    → <code>${cmdName}</code>\n`;
+          await client.invoke(new Api.messages.SendInlineBotResult({
+            peer: msg.chatId,
+            queryId: results.queryId,
+            id: results.results[0].id,
+            hideVia: false 
+          }));
+        } catch (e) {
+          console.error("Inline Help Error:", e);
+          await client.sendMessage(msg.chatId, {
+            message: "⚠️ <b>Error:</b> Pastikan bot udah /setinline di BotFather dan username-nya bener!",
+            parseMode: "html"
+          });
         }
-
-        helpMessage += `│\n`;
-        helpMessage += `├──────────────────\n`;
-        helpMessage += `│ 👑 Sudoers: ${sudoers.length} user\n`;
-        helpMessage += `│ 🔁 AutoFW: ${autoFwInterval ? `🟢 On (${autoFwRound})` : "🔴 Off"}\n`;
-        helpMessage += `╰━━━━━━━━━━━━━━━━━━╯`;
-
-        await client.sendMessage(msg.chatId, {
-          message: withFooter(helpMessage),
-          parseMode: "html",
-          replyTo: msg.id,
-        });
         return;
       }
 
